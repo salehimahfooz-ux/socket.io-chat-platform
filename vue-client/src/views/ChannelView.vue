@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref, computed, onUnmounted } from "vue";
+import { onMounted, watch, ref, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMainStore } from "@/stores/main";
 import Sidebar from "@/components/ChannelView/Sidebar.vue";
@@ -11,7 +11,9 @@ const router = useRouter();
 const isMobile = ref(window.innerWidth <= 768);
 
 function updateSelectChannel() {
-  return store.selectChannel(route.params.channelId);
+  if (route.params.channelId) {
+    return store.selectChannel(route.params.channelId);
+  }
 }
 
 const handleResize = () => {
@@ -21,13 +23,6 @@ const handleResize = () => {
 onMounted(() => {
   window.addEventListener('resize', handleResize);
   updateSelectChannel();
-  
-  // 🎯 تغییر اینجا: در موبایل همیشه ابتدا لیست چت‌ها را نشان بده
-  if (isMobile.value && route.params.channelId) {
-    // اگر در موبایل هستیم و channelId داریم، به لیست چت‌ها برگردان
-    // یا channelId را از store پاک کن تا ابتدا لیست نشان داده شود
-    store.selectedChannel = null;
-  }
 });
 
 onUnmounted(() => {
@@ -38,8 +33,18 @@ watch(() => route.params.channelId, updateSelectChannel);
 </script>
 
 <template>
-  <!-- Desktop View - Sidebar و ChatPanel کنار هم -->
-  <div v-if="!isMobile" class="desktop-container">
+  <!-- حالت موبایل: اگر channelId در URL هست، ChatPanel رو نشون بده -->
+  <div v-if="isMobile && route.params.channelId" class="mobile-chat-view">
+    <ChatPanel />
+  </div>
+  
+  <!-- حالت موبایل: اگر channelId در URL نیست، Sidebar رو نشون بده -->
+  <div v-else-if="isMobile" class="mobile-sidebar-view">
+    <Sidebar class="mobile-sidebar" />
+  </div>
+
+  <!-- حالت دسکتاپ: همیشه هر دو رو نشون بده -->
+  <div v-else class="desktop-container">
     <Sidebar class="desktop-sidebar" />
     <div class="desktop-chat-area">
       <ChatPanel v-if="store.selectedChannel" />
@@ -53,12 +58,6 @@ watch(() => route.params.channelId, updateSelectChannel);
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- 🎯 تغییر اینجا: در موبایل همیشه لیست چت‌ها را نشان بده -->
-  <!-- Mobile View - فقط Sidebar (لیست چت‌ها) -->
-  <div v-else class="mobile-container">
-    <Sidebar class="mobile-sidebar" />
   </div>
 </template>
 
@@ -101,11 +100,15 @@ watch(() => route.params.channelId, updateSelectChannel);
   font-weight: 300;
 }
 
-/* 🎯 تغییر اینجا: موبایل فقط لیست چت‌ها */
-.mobile-container {
+/* موبایل */
+.mobile-chat-view {
   height: 100vh;
   width: 100vw;
-  background: white;
+}
+
+.mobile-sidebar-view {
+  height: 100vh;
+  width: 100vw;
 }
 
 .mobile-sidebar {
@@ -120,7 +123,8 @@ watch(() => route.params.channelId, updateSelectChannel);
 }
 
 @media (min-width: 769px) {
-  .mobile-container {
+  .mobile-chat-view,
+  .mobile-sidebar-view {
     display: none;
   }
 }
