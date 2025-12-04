@@ -15,16 +15,18 @@ async function logOut() {
   await router.push({ name: "login" });
 }
 
-// تشخیص موبایل/دسکتاپ
-const isMobile = () => window.innerWidth <= 768;
-
-const handleChannelClick = (channelId, event) => {
-  if (isMobile()) {
-    // در موبایل: به صفحه چت برو
-    event.preventDefault();
-    router.push({ name: 'channel', params: { channelId } });
+const handleChannelClick = (channelId) => {
+  // اول channel رو select کن
+  store.selectChannel(channelId);
+  
+  // در موبایل: به صفحه چت برو
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    // یک تأخیر کوچک برای اینکه store به روز بشه
+    setTimeout(() => {
+      router.push({ name: 'channel', params: { channelId } });
+    }, 50);
   }
-  // در دسکتاپ: router-link خودش کارش رو میکنه
 }
 </script>
 
@@ -87,18 +89,18 @@ const handleChannelClick = (channelId, event) => {
         v-for="channel in store.publicChannels"
         :key="channel.id"
       >
-        <router-link
+        <a
           class="channel-link"
-          :to="{ name: 'channel', params: { channelId: channel.id } }"
+          href="#"
           :class="store.isChannelSelected(channel.id) ? 'active' : ''"
-          @click="(e) => handleChannelClick(channel.id, e)"
+          @click.prevent="handleChannelClick(channel.id)"
         >
           <PublicChannelLabel :channel="channel" class="channel-label" />
           
           <span class="unread-badge" v-if="channel.unreadCount > 0">
             {{ channel.unreadCount }}
           </span>
-        </router-link>
+        </a>
       </div>
     </div>
 
@@ -126,18 +128,18 @@ const handleChannelClick = (channelId, event) => {
         v-for="channel in store.privateChannels"
         :key="channel.id"
       >
-        <router-link
+        <a
           class="channel-link"
-          :to="{ name: 'channel', params: { channelId: channel.id } }"
+          href="#"
           :class="store.isChannelSelected(channel.id) ? 'active' : ''"
-          @click="(e) => handleChannelClick(channel.id, e)"
+          @click.prevent="handleChannelClick(channel.id)"
         >
           <PrivateChannelLabel :channel="channel" class="channel-label" />
           
           <span class="unread-badge" v-if="channel.unreadCount > 0">
             {{ channel.unreadCount }}
           </span>
-        </router-link>
+        </a>
       </div>
     </div>
 
@@ -307,6 +309,7 @@ const handleChannelClick = (channelId, event) => {
   text-decoration: none;
   color: #111b21;
   transition: background 0.2s;
+  cursor: pointer;
 }
 
 .channel-link:hover {
