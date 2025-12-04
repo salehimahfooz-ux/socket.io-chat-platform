@@ -22,9 +22,11 @@ onMounted(() => {
   window.addEventListener('resize', handleResize);
   updateSelectChannel();
   
-  // در موبایل اگر channelId در URL نیست، از store انتخاب کن
-  if (isMobile.value && !route.params.channelId && store.selectedChannel) {
-    router.push({ name: 'channel', params: { channelId: store.selectedChannel.id } });
+  // 🎯 تغییر اینجا: در موبایل همیشه ابتدا لیست چت‌ها را نشان بده
+  if (isMobile.value && route.params.channelId) {
+    // اگر در موبایل هستیم و channelId داریم، به لیست چت‌ها برگردان
+    // یا channelId را از store پاک کن تا ابتدا لیست نشان داده شود
+    store.selectedChannel = null;
   }
 });
 
@@ -53,14 +55,10 @@ watch(() => route.params.channelId, updateSelectChannel);
     </div>
   </div>
 
-  <!-- Mobile View - یا Sidebar یا ChatPanel -->
+  <!-- 🎯 تغییر اینجا: در موبایل همیشه لیست چت‌ها را نشان بده -->
+  <!-- Mobile View - فقط Sidebar (لیست چت‌ها) -->
   <div v-else class="mobile-container">
-    <div v-if="!route.params.channelId" class="mobile-sidebar-view">
-      <Sidebar class="mobile-sidebar" />
-    </div>
-    <div v-else class="mobile-chat-view">
-      <ChatPanel />
-    </div>
+    <Sidebar class="mobile-sidebar" />
   </div>
 </template>
 
@@ -103,20 +101,14 @@ watch(() => route.params.channelId, updateSelectChannel);
   font-weight: 300;
 }
 
+/* 🎯 تغییر اینجا: موبایل فقط لیست چت‌ها */
 .mobile-container {
   height: 100vh;
   width: 100vw;
-}
-
-.mobile-sidebar-view {
-  height: 100%;
+  background: white;
 }
 
 .mobile-sidebar {
-  height: 100%;
-}
-
-.mobile-chat-view {
   height: 100%;
 }
 
