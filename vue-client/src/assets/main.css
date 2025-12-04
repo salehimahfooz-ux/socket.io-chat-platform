@@ -1,11 +1,74 @@
-@import "./bootstrap.css";
-@import "./base.css";
-
-#app {
-  height: 100%;
-  display: flex;
+/* vue-client/src/assets/main.css - فقط این استایل‌ها را اضافه کنید */
+:root {
+  --whatsapp-green: #25d366;
+  --whatsapp-green-dark: #128c7e;
+  --whatsapp-background: #f0f2f5;
+  --whatsapp-chat-bg: #efeae2;
+  --whatsapp-sent-bg: #d9fdd3;
+  --whatsapp-received-bg: white;
+  --whatsapp-text-dark: #111b21;
+  --whatsapp-text-light: #667781;
 }
 
-.mw-80 {
-  max-width: 80%;
+/* WhatsApp message bubble styles */
+.message-bubble {
+  max-width: 65%;
+  padding: 8px 12px;
+  border-radius: 7.5px;
+  position: relative;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+}
+
+.message-bubble.sent {
+  background: var(--whatsapp-sent-bg);
+  border-bottom-right-radius: 0;
+}
+
+.message-bubble.received {
+  background: var(--whatsapp-received-bg);
+  border-top-left-radius: 0;
+}
+
+/* WhatsApp message tail */
+.message-bubble.sent::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 8px 8px;
+  border-color: transparent transparent transparent var(--whatsapp-sent-bg);
+}
+
+.message-bubble.received::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 8px 8px 0 0;
+  border-color: var(--whatsapp-received-bg) transparent transparent transparent;
+}
+
+/* WhatsApp input area */
+.whatsapp-input {
+  background: #f0f2f5;
+  border-top: 1px solid #e0e0e0;
+}
+
+.whatsapp-input .input-wrapper {
+  background: white;
+  border-radius: 20px;
+  margin: 0 16px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: 80%;
+  }
 }
