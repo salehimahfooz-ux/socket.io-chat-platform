@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, watch, ref, onUnmounted } from "vue";
+import { onMounted, watch, ref, onUnmounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMainStore } from "@/stores/main";
 import Sidebar from "@/components/ChannelView/Sidebar.vue";
@@ -10,9 +10,18 @@ const route = useRoute();
 const router = useRouter();
 const isMobile = ref(window.innerWidth <= 768);
 
+// تشخیص اینکه در صفحه چت هستیم یا لیست چت‌ها
+const isChatRoute = computed(() => {
+  return route.name === 'channel';
+});
+
+const channelId = computed(() => {
+  return route.params.channelId;
+});
+
 function updateSelectChannel() {
-  if (route.params.channelId) {
-    return store.selectChannel(route.params.channelId);
+  if (channelId.value) {
+    return store.selectChannel(channelId.value);
   }
 }
 
@@ -29,16 +38,16 @@ onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
 });
 
-watch(() => route.params.channelId, updateSelectChannel);
+watch(channelId, updateSelectChannel);
 </script>
 
 <template>
-  <!-- حالت موبایل: اگر channelId در URL هست، ChatPanel رو نشون بده -->
-  <div v-if="isMobile && route.params.channelId" class="mobile-chat-view">
+  <!-- حالت موبایل: اگر در صفحه چت هستیم (route نام 'channel') -->
+  <div v-if="isMobile && isChatRoute" class="mobile-chat-view">
     <ChatPanel />
   </div>
   
-  <!-- حالت موبایل: اگر channelId در URL نیست، Sidebar رو نشون بده -->
+  <!-- حالت موبایل: اگر در صفحه اصلی هستیم -->
   <div v-else-if="isMobile" class="mobile-sidebar-view">
     <Sidebar class="mobile-sidebar" />
   </div>
@@ -62,6 +71,7 @@ watch(() => route.params.channelId, updateSelectChannel);
 </template>
 
 <style scoped>
+/* استایل‌ها بدون تغییر */
 .desktop-container {
   display: flex;
   height: 100vh;
