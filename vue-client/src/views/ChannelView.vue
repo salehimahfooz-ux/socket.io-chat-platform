@@ -1,25 +1,135 @@
 <script setup>
-import { onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { onMounted, watch, ref, computed, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useMainStore } from "@/stores/main";
 import Sidebar from "@/components/ChannelView/Sidebar.vue";
 import ChatPanel from "@/components/ChannelView/ChatPanel.vue";
 
 const store = useMainStore();
 const route = useRoute();
+const router = useRouter();
+const isMobile = ref(window.innerWidth <= 768);
 
 function updateSelectChannel() {
   return store.selectChannel(route.params.channelId);
 }
 
-onMounted(updateSelectChannel);
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+  updateSelectChannel();
+  
+  // در موبایل اگر channelId در URL نیست، از store انتخاب کن
+  if (isMobile.value && !route.params.channelId && store.selectedChannel) {
+    router.push({ name: 'channel', params: { channelId: store.selectedChannel.id } });
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
 watch(() => route.params.channelId, updateSelectChannel);
 </script>
 
 <template>
-  <Sidebar />
+  <!-- Desktop View - Sidebar و ChatPanel کنار هم -->
+  <div v-if="!isMobile" class="desktop-container">
+    <Sidebar class="desktop-sidebar" />
+    <div class="desktop-chat-area">
+      <ChatPanel v-if="store.selectedChannel" />
+      <div v-else class="desktop-empty-state">
+        <div class="empty-content">
+          <svg width="120" height="120" viewBox="0 0 24 24">
+            <path fill="#25d366" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          <h3>Welcome to Chat</h3>
+          <p>Select a conversation to start messaging</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <ChatPanel />
+  <!-- Mobile View - یا Sidebar یا ChatPanel -->
+  <div v-else class="mobile-container">
+    <div v-if="!route.params.channelId" class="mobile-sidebar-view">
+      <Sidebar class="mobile-sidebar" />
+    </div>
+    <div v-else class="mobile-chat-view">
+      <ChatPanel />
+    </div>
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.desktop-container {
+  display: flex;
+  height: 100vh;
+  background: #f0f2f5;
+}
+
+.desktop-sidebar {
+  width: 400px;
+  min-width: 350px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+}
+
+.desktop-chat-area {
+  flex: 1;
+  background: white;
+}
+
+.desktop-empty-state {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+}
+
+.empty-content {
+  text-align: center;
+  color: #667781;
+  padding: 20px;
+}
+
+.empty-content h3 {
+  margin: 20px 0 8px 0;
+  color: #111b21;
+  font-weight: 300;
+}
+
+.mobile-container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.mobile-sidebar-view {
+  height: 100%;
+}
+
+.mobile-sidebar {
+  height: 100%;
+}
+
+.mobile-chat-view {
+  height: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .desktop-container {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-container {
+    display: none;
+  }
+}
+</style>
